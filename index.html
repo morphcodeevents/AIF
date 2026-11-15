@@ -1,0 +1,2578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE THINGS WE DON'T SAY — AHF India Cares × MORPH._Code</title>
+    
+    <!-- Typography: Inter (Ultra-legible optical sizes) & Plus Jakarta Sans (Display) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           FIXED 16:9 STAGE: MANDATORY BASE STYLES
+           =========================================== */
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: #090a0f;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        body.mouse-idle {
+            cursor: none;
+        }
+
+        .deck-viewport {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            background: #090a0f;
+        }
+
+        .deck-stage {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            transform-origin: 0 0;
+            background: #ffffff;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            display: block;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            background: #ffffff;
+        }
+
+        .slide.active,
+        .slide.visible {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        img,
+        video,
+        canvas,
+        svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        @media print {
+            html,
+            body {
+                width: 1920px;
+                height: auto;
+                overflow: visible;
+                background: #fff;
+            }
+
+            .deck-viewport {
+                position: static;
+                overflow: visible;
+                background: #fff;
+            }
+
+            .deck-stage {
+                position: static;
+                width: auto;
+                height: auto;
+                transform: none !important;
+                background: none;
+            }
+
+            .slide {
+                position: relative;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                width: 1920px;
+                height: 1080px;
+                break-after: page;
+                page-break-after: always;
+            }
+
+            .slide:last-child {
+                break-after: auto;
+                page-break-after: auto;
+            }
+
+            .hud-container,
+            .progress-bar-rail {
+                display: none !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+        }
+
+        /* ===========================================
+           DESIGN SYSTEM: HIGH-LEGIBILITY SWISS MODERN
+           =========================================== */
+        :root {
+            --bg-page: #ffffff;
+            --bg-subtle: #f8fafc;
+            --bg-card: #f1f5f9;
+            --bg-card-hover: #e2e8f0;
+
+            /* High Contrast Typography */
+            --text-lead: #09090b; /* Pure dark charcoal/black for instant readability */
+            --text-body: #18181b; /* Crisp dark tone, highly legible */
+            --text-secondary: #27272a;
+            --text-muted: #4b5563; /* Clear, sharp neutral gray */
+            --text-faint: #6b7280;
+
+            /* AHF Brand Signature */
+            --accent-red: #c41e3a; /* Official AHF Crimson */
+            --accent-red-hover: #a6172f;
+            --accent-red-subtle: rgba(196, 30, 58, 0.08);
+            --accent-red-border: rgba(196, 30, 58, 0.3);
+
+            --border-light: rgba(17, 17, 17, 0.1);
+            --border-medium: rgba(17, 17, 17, 0.18);
+            --border-dark: #09090b;
+
+            /* Fonts */
+            --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-speed: 0.6s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Slide Canvas Layout */
+        .slide-inner {
+            width: 100%;
+            height: 100%;
+            padding: 72px 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            background: var(--bg-page);
+            color: var(--text-lead);
+            font-family: var(--font-body);
+        }
+
+        /* Global Slide Header */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-medium);
+            padding-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-brand-group {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .brand-ahf-logo {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .ahf-bold {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--accent-red);
+            letter-spacing: -0.02em;
+        }
+
+        .ahf-sub {
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-lead);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .brand-sep {
+            width: 1.5px;
+            height: 24px;
+            background: var(--border-medium);
+        }
+
+        .brand-morph-tag {
+            font-family: var(--font-body);
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: var(--text-lead);
+        }
+
+        .header-meta-group {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .meta-tag-highlight {
+            color: var(--accent-red);
+            font-weight: 800;
+        }
+
+        .slide-index-counter {
+            font-weight: 800;
+            color: var(--text-lead);
+            background: var(--bg-card);
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-light);
+        }
+
+        /* Global Slide Footer */
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1.5px solid var(--border-light);
+            padding-top: 20px;
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-left {
+            display: flex;
+            gap: 28px;
+        }
+
+        .footer-left strong {
+            color: var(--text-lead);
+            font-weight: 700;
+        }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Slide Content Container */
+        .slide-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            padding: 28px 0;
+            z-index: 2;
+        }
+
+        /* Common Slide Title Block */
+        .section-kicker {
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--accent-red);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-kicker::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent-red);
+            border-radius: 50%;
+        }
+
+        .slide-h1 {
+            font-family: var(--font-display);
+            font-size: 68px;
+            font-weight: 900;
+            line-height: 1.06;
+            letter-spacing: -0.035em;
+            color: var(--text-lead);
+            margin-bottom: 20px;
+        }
+
+        .slide-lead {
+            font-family: var(--font-body);
+            font-size: 26px;
+            line-height: 1.5;
+            color: var(--text-body);
+            font-weight: 500;
+            max-width: 1300px;
+        }
+
+        /* Reveal Animation Mechanism */
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity var(--transition-speed) var(--ease-out-expo),
+                        transform var(--transition-speed) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slide.visible .delay-1 { transition-delay: 0.08s; }
+        .slide.visible .delay-2 { transition-delay: 0.16s; }
+        .slide.visible .delay-3 { transition-delay: 0.24s; }
+        .slide.visible .delay-4 { transition-delay: 0.32s; }
+        .slide.visible .delay-5 { transition-delay: 0.40s; }
+
+        /* ===========================================
+           SLIDE-SPECIFIC CUSTOM COMPONENT STYLES
+           =========================================== */
+
+        /* SLIDE 1: COVER */
+        .cover-layout {
+            display: grid;
+            grid-template-columns: 500px 1fr;
+            gap: 80px;
+            align-items: baseline;
+            height: 100%;
+        }
+
+        .cover-title {
+            font-family: var(--font-display);
+            font-size: 116px;
+            line-height: 0.92;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            color: var(--text-lead);
+            margin-bottom: 30px;
+        }
+
+        .cover-title span {
+            color: var(--accent-red);
+        }
+
+        .cover-tagline {
+            font-family: var(--font-body);
+            font-size: 42px;
+            font-weight: 500;
+            color: var(--text-body);
+            letter-spacing: -0.02em;
+            font-style: italic;
+            border-left: 4px solid var(--accent-red);
+            padding-left: 28px;
+            margin-bottom: 32px;
+        }
+
+        /* SLIDE 2: THE OPPORTUNITY (TENSION) */
+        .tension-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 44px;
+            margin-top: 40px;
+        }
+
+        .tension-card {
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-medium);
+            padding: 44px;
+            position: relative;
+            border-top: 5px solid var(--border-dark);
+        }
+
+        .tension-card.perception {
+            border-top-color: var(--accent-red);
+            background: #fffafa;
+        }
+
+        .card-header-label {
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+        }
+
+        .perception .card-header-label {
+            color: var(--accent-red);
+        }
+
+        .card-big-title {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+            margin-bottom: 26px;
+            color: var(--text-lead);
+        }
+
+        .point-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .point-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            font-size: 20px;
+            line-height: 1.55;
+            color: var(--text-body);
+        }
+
+        .point-icon {
+            font-size: 18px;
+            font-weight: 900;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .reality-icon { color: #047857; }
+        .stigma-icon { color: var(--accent-red); }
+
+        .gap-callout {
+            margin-top: 36px;
+            padding: 24px 34px;
+            background: var(--bg-card);
+            border-left: 5px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gap-text {
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--text-lead);
+        }
+
+        .gap-badge {
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent-red);
+            background: #ffffff;
+            padding: 7px 16px;
+            border: 1.5px solid var(--border-medium);
+        }
+
+        /* SLIDE 3: THE CAMPAIGN IDEA */
+        .campaign-manifesto-wrap {
+            max-width: 1450px;
+            margin: 0 auto;
+            text-align: left;
+            padding: 10px 0;
+        }
+
+        .manifesto-lead-kicker {
+            font-family: var(--font-body);
+            font-size: 16px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent-red);
+            font-weight: 800;
+            margin-bottom: 24px;
+        }
+
+        .manifesto-headline {
+            font-family: var(--font-display);
+            font-size: 96px;
+            font-weight: 900;
+            line-height: 0.95;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            color: var(--text-lead);
+            margin-bottom: 28px;
+        }
+
+        .manifesto-headline span {
+            color: var(--accent-red);
+        }
+
+        .manifesto-line {
+            font-family: var(--font-body);
+            font-size: 46px;
+            font-weight: 500;
+            color: var(--text-body);
+            font-style: italic;
+            margin-bottom: 48px;
+            border-left: 5px solid var(--accent-red);
+            padding-left: 32px;
+        }
+
+        .manifesto-subtext-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 70px;
+            border-top: 1.5px solid var(--border-medium);
+            padding-top: 40px;
+        }
+
+        .manifesto-col p {
+            font-size: 23px;
+            line-height: 1.65;
+            color: var(--text-body);
+        }
+
+        .manifesto-col strong {
+            color: var(--text-lead);
+            font-weight: 700;
+        }
+
+        /* SLIDE 4: THE CAMPAIGN ECOSYSTEM */
+        .ecosystem-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 36px;
+            margin-top: 36px;
+            position: relative;
+        }
+
+        .pillar-card {
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-medium);
+            padding: 38px 34px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 450px;
+            position: relative;
+            border-top: 5px solid var(--border-dark);
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .pillar-card:hover {
+            transform: translateY(-4px);
+            background: #ffffff;
+            border-color: var(--accent-red);
+        }
+
+        .pillar-num {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--accent-red);
+            margin-bottom: 20px;
+        }
+
+        .pillar-title {
+            font-family: var(--font-display);
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            color: var(--text-lead);
+            margin-bottom: 18px;
+        }
+
+        .pillar-desc {
+            font-size: 19px;
+            line-height: 1.65;
+            color: var(--text-body);
+            margin-bottom: 28px;
+        }
+
+        .pillar-deliverables-pill {
+            margin-top: auto;
+            padding-top: 22px;
+            border-top: 1.5px dashed var(--border-medium);
+            font-family: var(--font-body);
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-lead);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pillar-deliverables-pill::before {
+            content: '→';
+            color: var(--accent-red);
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .ecosystem-connect-bar {
+            margin-top: 36px;
+            padding: 22px 34px;
+            background: #09090b;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .ecosystem-connect-bar span {
+            color: #e5e7eb;
+        }
+
+        .ecosystem-connect-bar strong {
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        /* SLIDE 5: PUBLIC CONVERSATIONS (VOXPOP) */
+        .voxpop-formats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 34px;
+            margin-top: 36px;
+        }
+
+        .format-card {
+            background: #ffffff;
+            border: 1.5px solid var(--border-medium);
+            padding: 34px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .format-tag {
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--accent-red);
+            margin-bottom: 14px;
+        }
+
+        .format-name {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-lead);
+            margin-bottom: 16px;
+        }
+
+        .format-concept {
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--text-body);
+            margin-bottom: 24px;
+        }
+
+        .format-visual-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            padding: 22px;
+            margin-top: auto;
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .visual-label {
+            font-family: var(--font-body);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .visual-prompt {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-lead);
+            font-style: italic;
+            line-height: 1.45;
+        }
+
+        .voxpop-summary-ribbon {
+            margin-top: 36px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-medium);
+            padding: 20px 34px;
+        }
+
+        .ribbon-stat {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+        }
+
+        .stat-huge {
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--accent-red);
+            letter-spacing: -0.02em;
+        }
+
+        .stat-desc {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-lead);
+        }
+
+        /* SLIDE 6: KNOWLEDGE INTERVENTIONS */
+        .knowledge-split-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 50px;
+            margin-top: 36px;
+        }
+
+        .knowledge-pane {
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-medium);
+            padding: 42px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .knowledge-pane.print-pane {
+            background: #ffffff;
+            border-top: 5px solid var(--accent-red);
+        }
+
+        .knowledge-pane.motion-pane {
+            background: #ffffff;
+            border-top: 5px solid var(--text-lead);
+        }
+
+        .pane-badge {
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            display: inline-block;
+        }
+
+        .badge-motion { color: var(--text-lead); }
+        .badge-print { color: var(--accent-red); }
+
+        .pane-title {
+            font-family: var(--font-display);
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-lead);
+            margin-bottom: 18px;
+        }
+
+        .pane-body {
+            font-size: 19px;
+            line-height: 1.65;
+            color: var(--text-body);
+            margin-bottom: 24px;
+        }
+
+        .u-equals-u-box {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-medium);
+            padding: 26px;
+            margin-top: 16px;
+        }
+
+        .formula-callout {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--accent-red);
+            letter-spacing: -0.01em;
+            margin-bottom: 10px;
+        }
+
+        .formula-sub {
+            font-size: 16px;
+            color: var(--text-body);
+            line-height: 1.55;
+            font-weight: 500;
+        }
+
+        .checklist-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 24px;
+            margin-top: 18px;
+        }
+
+        .check-item {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-body);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .check-item::before {
+            content: '■';
+            font-size: 11px;
+            color: var(--accent-red);
+        }
+
+        .qr-connect-note {
+            margin-top: 26px;
+            padding: 16px 20px;
+            background: var(--accent-red-subtle);
+            border: 1.5px solid var(--accent-red-border);
+            font-family: var(--font-body);
+            font-size: 14px;
+            color: var(--accent-red);
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        /* SLIDE 7: PUBLIC INSIGHT & ADVOCACY */
+        .pulse-architecture-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            margin-top: 36px;
+        }
+
+        .pulse-capture-card {
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-medium);
+            padding: 38px;
+        }
+
+        .pulse-header-title {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-lead);
+            margin-bottom: 22px;
+            border-bottom: 2px solid var(--border-dark);
+            padding-bottom: 14px;
+        }
+
+        .survey-topics-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .survey-topics-list li {
+            font-size: 19px;
+            line-height: 1.55;
+            color: var(--text-body);
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+        }
+
+        .survey-topics-list li::before {
+            content: '0' counter(item);
+            counter-increment: item;
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--accent-red);
+            flex-shrink: 0;
+        }
+
+        .pulse-topics { counter-reset: item; }
+
+        .governance-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .gov-card {
+            background: #ffffff;
+            border: 1.5px solid var(--border-medium);
+            padding: 30px;
+            border-left: 5px solid var(--border-dark);
+        }
+
+        .gov-card.privacy-guard {
+            border-left-color: #047857;
+        }
+
+        .gov-card.pulse-scope {
+            border-left-color: var(--accent-red);
+        }
+
+        .gov-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-lead);
+            margin-bottom: 10px;
+        }
+
+        .gov-desc {
+            font-size: 17px;
+            line-height: 1.6;
+            color: var(--text-body);
+        }
+
+        /* SLIDE 8: DISTRIBUTION & REACH */
+        .distribution-dashboard {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 50px;
+            margin-top: 36px;
+        }
+
+        .budget-breakdown-card {
+            background: #ffffff;
+            border: 1.5px solid var(--border-medium);
+            padding: 38px;
+        }
+
+        .clean-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 22px;
+        }
+
+        .clean-table th {
+            text-align: left;
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 14px 0;
+            border-bottom: 2px solid var(--border-dark);
+        }
+
+        .clean-table th.num-col,
+        .clean-table td.num-col {
+            text-align: right;
+            font-feature-settings: 'tnum';
+        }
+
+        .clean-table td {
+            font-size: 20px;
+            font-weight: 500;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-lead);
+        }
+
+        .clean-table tr.total-row td {
+            font-weight: 900;
+            font-size: 24px;
+            border-top: 2px solid var(--border-dark);
+            border-bottom: 2px solid var(--border-dark);
+            color: var(--accent-red);
+            padding: 22px 0;
+        }
+
+        .metrics-projection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .metric-tile {
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-medium);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metric-num {
+            font-family: var(--font-display);
+            font-size: 50px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: var(--text-lead);
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+
+        .metric-num.highlight {
+            color: var(--accent-red);
+        }
+
+        .metric-label {
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .planning-disclaimer {
+            margin-top: 26px;
+            font-size: 16px;
+            line-height: 1.55;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* SLIDE 9: SCOPE & INVESTMENT */
+        .commercials-layout {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 50px;
+            margin-top: 36px;
+        }
+
+        .scope-manifest-card {
+            background: #ffffff;
+            border: 1.5px solid var(--border-medium);
+            padding: 38px;
+        }
+
+        .deliverables-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+
+        .deliverables-table th {
+            text-align: left;
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            padding: 12px 0;
+            border-bottom: 2px solid var(--border-dark);
+        }
+
+        .deliverables-table td {
+            font-size: 18px;
+            font-weight: 500;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-lead);
+        }
+
+        .deliverables-table td.qty-col {
+            text-align: right;
+            font-family: var(--font-body);
+            font-weight: 800;
+            font-size: 19px;
+            font-feature-settings: 'tnum';
+        }
+
+        .investment-summary-card {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .cost-hero-box {
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-medium);
+            padding: 30px;
+            border-left: 5px solid var(--border-dark);
+        }
+
+        .cost-hero-box.total-box {
+            background: #09090b;
+            color: #ffffff;
+            border-left-color: var(--accent-red);
+        }
+
+        .cost-role-tag {
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .total-box .cost-role-tag {
+            color: #9ca3af;
+        }
+
+        .cost-amount-large {
+            font-family: var(--font-display);
+            font-size: 58px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: var(--text-lead);
+            line-height: 1;
+        }
+
+        .total-box .cost-amount-large {
+            color: var(--accent-red);
+        }
+
+        .tax-note {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .total-box .tax-note {
+            color: #9ca3af;
+        }
+
+        .commercial-note-box {
+            padding: 18px;
+            background: var(--bg-card);
+            border: 1.5px dashed var(--border-medium);
+            font-size: 15px;
+            line-height: 1.55;
+            color: var(--text-body);
+        }
+
+        /* SLIDE 10: EXECUTION TIMELINE */
+        .timeline-container {
+            margin-top: 32px;
+        }
+
+        .gantt-strip {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .day-column {
+            background: #ffffff;
+            border: 1.5px solid var(--border-medium);
+            padding: 26px 18px;
+            display: flex;
+            flex-direction: column;
+            border-top: 5px solid var(--border-dark);
+            min-height: 350px;
+        }
+
+        .day-column.launch-day {
+            border-top-color: var(--accent-red);
+            background: #fffafa;
+        }
+
+        .day-header {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text-lead);
+            margin-bottom: 12px;
+        }
+
+        .day-column.launch-day .day-header {
+            color: var(--accent-red);
+        }
+
+        .day-badge {
+            font-family: var(--font-body);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            background: var(--bg-card);
+            display: inline-block;
+            margin-bottom: 16px;
+            width: fit-content;
+            border-radius: 2px;
+        }
+
+        .day-column.launch-day .day-badge {
+            background: var(--accent-red);
+            color: #ffffff;
+        }
+
+        .day-task-desc {
+            font-size: 16px;
+            line-height: 1.55;
+            color: var(--text-body);
+            font-weight: 500;
+        }
+
+        .timeline-footer-block {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            background: var(--bg-subtle);
+            border: 1.5px solid var(--border-medium);
+            padding: 22px 30px;
+        }
+
+        .time-note-unit {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-body);
+        }
+
+        .time-note-unit strong {
+            color: var(--text-lead);
+            font-weight: 700;
+        }
+
+        /* ===========================================
+           FLOATING AUTO-HIDING HUD (ACTIVITY-TRIGGERED)
+           =========================================== */
+        .hud-container {
+            position: fixed;
+            bottom: 28px;
+            right: 36px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(9, 10, 15, 0.90);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.15);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.35s var(--ease-out-expo),
+                        transform 0.35s var(--ease-out-expo);
+        }
+
+        .hud-container.hud-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .hud-btn {
+            background: transparent;
+            border: none;
+            color: #f1f5f9;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+        }
+
+        .hud-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+        }
+
+        .hud-btn:active {
+            transform: scale(0.92);
+        }
+
+        .hud-btn.active {
+            background: var(--accent-red);
+            color: #ffffff;
+        }
+
+        .hud-counter {
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: #e2e8f0;
+            padding: 0 8px;
+            user-select: none;
+            font-feature-settings: 'tnum';
+        }
+
+        .hud-divider {
+            width: 1px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.22);
+            margin: 0 4px;
+        }
+
+        /* Top Progress Bar (Hairline, Unobtrusive) */
+        .progress-bar-rail {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-red);
+            width: 10%;
+            transition: width 0.35s ease;
+        }
+
+        /* Editable Affordance */
+        [contenteditable="true"] {
+            outline: 2px dashed rgba(196, 30, 58, 0.5);
+            outline-offset: 4px;
+            border-radius: 2px;
+        }
+
+        [contenteditable="true"]:focus {
+            outline: 2px solid var(--accent-red);
+            background: rgba(196, 30, 58, 0.04);
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar-rail">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Floating Auto-Hiding HUD (Appears only on mouse activity / vanishes after 2.5s) -->
+    <div class="hud-container" id="hudContainer">
+        <button class="hud-btn" id="prevBtn" title="Previous Slide (Left Arrow / Page Up)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="hud-counter" id="slideCounter">01 / 10</div>
+        <button class="hud-btn" id="nextBtn" title="Next Slide (Right Arrow / Space / Page Down)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+        <div class="hud-divider"></div>
+        <button class="hud-btn" id="fullscreenBtn" title="Full Screen (F)">
+            <svg id="fsIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+        </button>
+        <button class="hud-btn" id="editToggle" title="Edit Text Mode (E)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div class="deck-viewport">
+        <main class="deck-stage" id="deckStage">
+
+            <!-- ========================================================
+                 SLIDE 1: COVER
+                 ======================================================== -->
+            <section class="slide active visible" data-index="0">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>World AIDS Day 2026</span>
+                            <span class="meta-tag-highlight">1 December 2026</span>
+                            <span class="slide-index-counter">01</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="cover-layout">
+                            <div class="cover-kicker-col reveal delay-2">
+                                <div class="section-kicker">Campaign Proposal</div>
+                                <p style="font-size: 21px; line-height: 1.6; color: var(--text-body); max-width: 420px; font-weight: 500;">
+                                    An executive-level strategic campaign bringing unspoken assumptions about HIV into everyday public conversations across Bengaluru.
+                                </p>
+                            </div>
+
+                            <div class="cover-hero-col">
+                                <h1 class="cover-title reveal delay-2">
+                                    THE THINGS<br>
+                                    WE DON'T<br>
+                                    <span>SAY</span>
+                                </h1>
+                                <p class="cover-tagline reveal delay-3">
+                                    A conversation we need to have.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Client: <strong>AHF India Cares</strong></span>
+                            <span>Agency: <strong>MORPH._Code</strong></span>
+                            <span>Territory: <strong>Bengaluru, Karnataka</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span class="live-dot"></span>
+                            <span>Working Proposal · November 2026</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 2: THE OPPORTUNITY (THE PERCEPTION GAP)
+                 ======================================================== -->
+            <section class="slide" data-index="1">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>01 / Context & Opportunity</span>
+                            <span class="slide-index-counter">02</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="section-kicker reveal delay-1">The Communication Challenge</div>
+                        <h2 class="slide-h1 reveal delay-2">HIV has changed. Public perception hasn't caught up.</h2>
+                        <p class="slide-lead reveal delay-3">
+                            The gap between medical progress and persistent social stigma presents an opportunity to create more informed public conversations around HIV.
+                        </p>
+
+                        <div class="tension-grid reveal delay-4">
+                            <!-- Medical Progress Column -->
+                            <div class="tension-card">
+                                <div class="card-header-label">Medical Progress (The Reality)</div>
+                                <div class="card-big-title">Treatment makes HIV uninfectious & manageable</div>
+                                <ul class="point-list">
+                                    <li class="point-item">
+                                        <span class="point-icon reality-icon">✔</span>
+                                        <span><strong>U=U (Undetectable = Untransmittable):</strong> Effective antiretroviral therapy (ART) suppresses viral load to undetectable levels, completely preventing sexual transmission.</span>
+                                    </li>
+                                    <li class="point-item">
+                                        <span class="point-icon reality-icon">✔</span>
+                                        <span><strong>Modern Life Expectancy:</strong> People living with HIV on sustained treatment live full, healthy, and productive lives.</span>
+                                    </li>
+                                    <li class="point-item">
+                                        <span class="point-icon reality-icon">✔</span>
+                                        <span><strong>Zero Casual Transmission:</strong> HIV cannot be transmitted through saliva, sharing food, utensils, drinking glasses, or shaking hands.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Social Stigma Column -->
+                            <div class="tension-card perception">
+                                <div class="card-header-label">Social Stigma (The Perception Gap)</div>
+                                <div class="card-big-title">Outdated fears continue to dictate public behaviour</div>
+                                <ul class="point-list">
+                                    <li class="point-item">
+                                        <span class="point-icon stigma-icon">✕</span>
+                                        <span><strong>Everyday Avoidance:</strong> Lingering irrational anxiety around sharing glasses, sharing meals, and physical proximity in daily social life.</span>
+                                    </li>
+                                    <li class="point-item">
+                                        <span class="point-icon stigma-icon">✕</span>
+                                        <span><strong>Reluctance to Test:</strong> Moral judgment and fear of isolation prevent at-risk and general populations from early, routine screening.</span>
+                                    </li>
+                                    <li class="point-item">
+                                        <span class="point-icon stigma-icon">✕</span>
+                                        <span><strong>Silence in Relationships:</strong> Status disclosure remains paralyzed by fear of rejection, workplace prejudice, and legal discrimination.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="gap-callout reveal delay-5">
+                            <span class="gap-text">Strategic Imperative: Close the divide between biomedical advancement and everyday societal acceptance.</span>
+                            <span class="gap-badge">Actionable Territory</span>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Strategic Rationale: <strong>Perception Lag Analysis</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>AHF India Cares × MORPH._Code</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 3: THE CAMPAIGN IDEA
+                 ======================================================== -->
+            <section class="slide" data-index="2">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>02 / Creative Direction</span>
+                            <span class="slide-index-counter">03</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="campaign-manifesto-wrap">
+                            <div class="manifesto-lead-kicker reveal delay-1">Parent Creative Proposition</div>
+                            <h2 class="manifesto-headline reveal delay-2">
+                                THE THINGS<br>
+                                WE DON'T <span>SAY</span>
+                            </h2>
+                            <div class="manifesto-line reveal delay-3">
+                                “A conversation we need to have.”
+                            </div>
+
+                            <div class="manifesto-subtext-grid reveal delay-4">
+                                <div class="manifesto-col">
+                                    <p>
+                                        Stigma thrives in unspoken hesitation — the split-second pause before sharing a drink, the awkward silence when HIV is mentioned, the assumption that it only happens to “other people.”
+                                    </p>
+                                </div>
+                                <div class="manifesto-col">
+                                    <p>
+                                        <strong>The Things We Don't Say</strong> surfaces these unspoken assumptions directly in public spaces. It does not lecture or shame; it creates safe, candid, provocative moments of truth that dismantle prejudice through informed dialogue.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Theme: <strong>Radical Public Candour</strong></span>
+                            <span>Medium: <strong>Activation & Social Dialogue</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>World AIDS Day 2026</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 4: THE CAMPAIGN ECOSYSTEM
+                 ======================================================== -->
+            <section class="slide" data-index="3">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>03 / Campaign Architecture</span>
+                            <span class="slide-index-counter">04</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="section-kicker reveal delay-1">Integrated System Design</div>
+                        <h2 class="slide-h1 reveal delay-2">One campaign. Three interconnected pillars.</h2>
+                        <p class="slide-lead reveal delay-3">
+                            A closed-loop architecture where street-level conversations trigger digital engagement, print education, and actionable public data.
+                        </p>
+
+                        <div class="ecosystem-container reveal delay-4">
+                            <!-- Pillar 1 -->
+                            <div class="pillar-card">
+                                <div>
+                                    <div class="pillar-num">01</div>
+                                    <h3 class="pillar-title">Public Conversations</h3>
+                                    <p class="pillar-desc">
+                                        On-ground public interaction experiments in high-footfall Bengaluru hubs. Real people confronting unspoken biases in real-time.
+                                    </p>
+                                </div>
+                                <div class="pillar-deliverables-pill">
+                                    15 Edited VoxPop Videos (3 Formats)
+                                </div>
+                            </div>
+
+                            <!-- Pillar 2 -->
+                            <div class="pillar-card" style="border-top-color: var(--accent-red);">
+                                <div>
+                                    <div class="pillar-num">02</div>
+                                    <h3 class="pillar-title">Knowledge Interventions</h3>
+                                    <p class="pillar-desc">
+                                        Authoritative, medically verified content translating medical science (U=U) and legal rights into accessible motion graphics and physical pamphlets.
+                                    </p>
+                                </div>
+                                <div class="pillar-deliverables-pill">
+                                    U=U Film + 10,000 Print Pamphlets
+                                </div>
+                            </div>
+
+                            <!-- Pillar 3 -->
+                            <div class="pillar-card">
+                                <div>
+                                    <div class="pillar-num">03</div>
+                                    <h3 class="pillar-title">Public Insight & Advocacy</h3>
+                                    <p class="pillar-desc">
+                                        Capturing public perception, knowledge gaps, and stigma indices through an anonymous survey linked via video CTAs and QR codes.
+                                    </p>
+                                </div>
+                                <div class="pillar-deliverables-pill">
+                                    Bengaluru Pulse Survey & Final Report
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ecosystem-connect-bar reveal delay-5">
+                            <span><strong>Pillars feed each other:</strong> VoxPops drive video reach → QR codes convert audiences to the survey → Survey pulse yields evidence for AHF policy advocacy.</span>
+                            <strong>Full Loop Activation</strong>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>System: <strong>Tripartite Activation Matrix</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>AHF India Cares × MORPH._Code</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 5: PUBLIC CONVERSATIONS (VOXPOP SERIES)
+                 ======================================================== -->
+            <section class="slide" data-index="4">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>04 / Pillar One: Street Activations</span>
+                            <span class="slide-index-counter">05</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="section-kicker reveal delay-1">Activation Deliverable · 15 Edited Assets</div>
+                        <h2 class="slide-h1 reveal delay-2">15 edited VoxPop videos across three creative formats</h2>
+                        <p class="slide-lead reveal delay-3">
+                            Filmed across high-energy Bengaluru hubs (Church Street, Indiranagar, Koramangala, college campuses) with full participant informed consent.
+                        </p>
+
+                        <div class="voxpop-formats-grid reveal delay-4">
+                            <!-- Format 1 -->
+                            <div class="format-card">
+                                <div class="format-tag">Format 01 · Social Experiment</div>
+                                <h3 class="format-name">The Glass</h3>
+                                <p class="format-concept">
+                                    Using a glass or water bottle as a physical conversation starter in public spaces to challenge deep-rooted misconceptions around transmission through shared food, drinks, and utensils.
+                                </p>
+                                <div class="format-visual-box">
+                                    <div class="visual-label">Street Interaction Prompt</div>
+                                    <div class="visual-prompt">“Would you take a sip from this glass if you knew the person before you was HIV positive?”</div>
+                                </div>
+                            </div>
+
+                            <!-- Format 2 -->
+                            <div class="format-card">
+                                <div class="format-tag">Format 02 · Behavioral Test</div>
+                                <h3 class="format-name">Everyday Interactions</h3>
+                                <p class="format-concept">
+                                    Exploring whether knowing someone's HIV status alters ordinary, everyday social interactions — sharing a taxi, shaking hands, sharing an office desk, or borrowing clothes.
+                                </p>
+                                <div class="format-visual-box">
+                                    <div class="visual-label">Street Interaction Prompt</div>
+                                    <div class="visual-prompt">“Your colleague discloses their HIV status at lunch. Does anything change between you?”</div>
+                                </div>
+                            </div>
+
+                            <!-- Format 3 -->
+                            <div class="format-card">
+                                <div class="format-tag">Format 03 · Scenario Dilemma</div>
+                                <h3 class="format-name">Would You Say Yes?</h3>
+                                <p class="format-concept">
+                                    Presenting young Bengaluru urbanites with hypothetical real-life dilemmas spanning romantic relationships, marriage, employment, renting an apartment, and healthcare access.
+                                </p>
+                                <div class="format-visual-box">
+                                    <div class="visual-label">Street Interaction Prompt</div>
+                                    <div class="visual-prompt">“The person you’re dating is on treatment and U=U (undetectable). Would you marry them?”</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="voxpop-summary-ribbon reveal delay-5">
+                            <div class="ribbon-stat">
+                                <span class="stat-huge">15</span>
+                                <span class="stat-desc">Edited VoxPop Reels & Shorts</span>
+                            </div>
+                            <div class="ribbon-stat">
+                                <span class="stat-huge">3</span>
+                                <span class="stat-desc">Distinct Creative Formats</span>
+                            </div>
+                            <div class="ribbon-stat">
+                                <span class="stat-huge">100%</span>
+                                <span class="stat-desc">Informed Consent & Dignity Safeguards</span>
+                            </div>
+                            <div class="ribbon-stat">
+                                <span class="stat-huge">4+</span>
+                                <span class="stat-desc">Bengaluru Youth Hubs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Format: <strong>9:16 Vertical Video Optimized for Instagram & YouTube Shorts</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>AHF India Cares × MORPH._Code</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 6: KNOWLEDGE INTERVENTIONS
+                 ======================================================== -->
+            <section class="slide" data-index="5">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>05 / Pillar Two: Science & Rights</span>
+                            <span class="slide-index-counter">06</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="section-kicker reveal delay-1">Educational Anchors</div>
+                        <h2 class="slide-h1 reveal delay-2">Reinforcing the conversation with clear information</h2>
+                        <p class="slide-lead reveal delay-3">
+                            Converting street curiosity into verified medical literacy and awareness of legal rights through targeted digital video and physical collateral.
+                        </p>
+
+                        <div class="knowledge-split-grid reveal delay-4">
+                            <!-- Motion Graphics Video -->
+                            <div class="knowledge-pane motion-pane">
+                                <div>
+                                    <span class="pane-badge badge-motion">Motion Graphics Deliverable · 01 Video</span>
+                                    <h3 class="pane-title">U=U Motion Graphics Explainer</h3>
+                                    <p class="pane-body">
+                                        A clean, typographic 2D motion graphics piece explaining the biomedical breakthrough of <strong>Undetectable = Untransmittable (U=U)</strong>. Demystifying viral load, treatment efficacy, and how viral suppression prevents sexual transmission.
+                                    </p>
+
+                                    <div class="u-equals-u-box">
+                                        <div class="formula-callout">Undetectable = Untransmittable</div>
+                                        <div class="formula-sub">
+                                            Sustained viral suppression means effectively zero risk of sexual transmission. (Medically certified: does not apply to breastfeeding, shared needles, or cure).
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 24px; font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text-muted);">
+                                    Note: Single motion graphics scope; Princess Diana concept excluded.
+                                </div>
+                            </div>
+
+                            <!-- Print Awareness Collateral -->
+                            <div class="knowledge-pane print-pane">
+                                <div>
+                                    <span class="pane-badge badge-print">Physical Distribution · 10,000 Units</span>
+                                    <h3 class="pane-title">10,000 Awareness Pamphlets</h3>
+                                    <p class="pane-body">
+                                        Tactile, highly readable editorial fold-out pamphlets distributed at key Bengaluru transit, college, and cafe touchpoints.
+                                    </p>
+
+                                    <div class="checklist-grid">
+                                        <div class="check-item">Transmission: Myths vs Facts</div>
+                                        <div class="check-item">Testing & Free Screening Paths</div>
+                                        <div class="check-item">U=U Scientific Definition</div>
+                                        <div class="check-item">De-stigmatizing Relationships</div>
+                                        <div class="check-item">HIV Act 2017 Legal Protections</div>
+                                        <div class="check-item">Confidential Support Resources</div>
+                                    </div>
+                                </div>
+
+                                <div class="qr-connect-note">
+                                    Direct Survey Bridge: Embedded QR code routes readers straight to the anonymous Bengaluru HIV Pulse Survey.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Compliance: <strong>All medical and legal claims subject to formal AHF approval</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>AHF India Cares × MORPH._Code</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 7: PUBLIC INSIGHT & ADVOCACY
+                 ======================================================== -->
+            <section class="slide" data-index="6">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>06 / Pillar Three: Public Insight</span>
+                            <span class="slide-index-counter">07</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="section-kicker reveal delay-1">Digital Survey & Advocacy Bridge</div>
+                        <h2 class="slide-h1 reveal delay-2">Bengaluru HIV Awareness & Perception Pulse 2026</h2>
+                        <p class="slide-lead reveal delay-3">
+                            A lightweight, anonymous digital assessment generating actionable evidence on urban awareness, stigma patterns, and knowledge of rights.
+                        </p>
+
+                        <div class="pulse-architecture-grid reveal delay-4">
+                            <!-- Survey Dimensions -->
+                            <div class="pulse-capture-card">
+                                <h3 class="pulse-header-title">Survey Capture Dimensions</h3>
+                                <ul class="survey-topics-list pulse-topics">
+                                    <li>
+                                        <span><strong>HIV Awareness & Transmission Myths:</strong> Baseline knowledge of transmission vs social contact misconceptions.</span>
+                                    </li>
+                                    <li>
+                                        <span><strong>Understanding of U=U:</strong> Public familiarity with viral suppression and sexual untransmittability.</span>
+                                    </li>
+                                    <li>
+                                        <span><strong>Social Attitudes & Stigma Index:</strong> Comfort levels with colleagues, flatmates, and partners living with HIV.</span>
+                                    </li>
+                                    <li>
+                                        <span><strong>Rights & Legal Literacy:</strong> Awareness of protections under the HIV & AIDS (Prevention and Control) Act, 2017.</span>
+                                    </li>
+                                    <li>
+                                        <span><strong>Demographic Correlates:</strong> Broad age bracket (18–25, 26–35, 36+) and Bengaluru quadrant clusters.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Governance & Privacy Protocols -->
+                            <div class="governance-panel">
+                                <div class="gov-card privacy-guard">
+                                    <div class="gov-title">Rigorous Privacy Guarantee</div>
+                                    <p class="gov-desc">
+                                        Strictly anonymous. The survey will <strong>never</strong> collect names, phone numbers, email addresses, IP identifiers, or respondents' personal HIV status.
+                                    </p>
+                                </div>
+
+                                <div class="gov-card pulse-scope">
+                                    <div class="gov-title">Methodological Qualification</div>
+                                    <p class="gov-desc">
+                                        Findings will be communicated as a <strong>Campaign Pulse</strong> (capturing engaged urban respondents), rather than a representative citywide study, maintaining scientific integrity.
+                                    </p>
+                                </div>
+
+                                <div class="gov-card">
+                                    <div class="gov-title">Advocacy Contribution</div>
+                                    <p class="gov-desc">
+                                        Consolidated findings will be packaged into a polished executive perception report for AHF India Cares to support policy, stakeholder, and community advocacy.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Ethics: <strong>Non-invasive · Zero PII Collection · Voluntary Participation</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>AHF India Cares × MORPH._Code</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 8: DISTRIBUTION & REACH
+                 ======================================================== -->
+            <section class="slide" data-index="7">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>07 / Media Strategy & Performance</span>
+                            <span class="slide-index-counter">08</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="section-kicker reveal delay-1">Paid Amplification & Acquisition</div>
+                        <h2 class="slide-h1 reveal delay-2">Taking the conversation beyond the point of interaction</h2>
+                        <p class="slide-lead reveal delay-3">
+                            A multi-tiered digital media distribution model engineered for video completion, survey conversions, and retargeting education.
+                        </p>
+
+                        <div class="distribution-dashboard reveal delay-4">
+                            <!-- Media Allocation Table -->
+                            <div class="budget-breakdown-card">
+                                <div class="card-header-label">Paid Media Allocation (₹3,00,000 Total)</div>
+                                <table class="clean-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Media Stream</th>
+                                            <th class="num-col">Budget (INR)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Awareness & VoxPop Video Distribution</td>
+                                            <td class="num-col">₹1,50,000</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Survey Traffic & Acquisition Ads</td>
+                                            <td class="num-col">₹1,00,000</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Retargeting & U=U Explainer Video</td>
+                                            <td class="num-col">₹50,000</td>
+                                        </tr>
+                                        <tr class="total-row">
+                                            <td>Total Paid Media Budget</td>
+                                            <td class="num-col">₹3,00,000</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Performance Projections -->
+                            <div class="metrics-projection-grid">
+                                <div class="metric-tile">
+                                    <div class="metric-num">15–25L</div>
+                                    <div class="metric-label">Estimated Impressions</div>
+                                </div>
+                                <div class="metric-tile">
+                                    <div class="metric-num">6–9L</div>
+                                    <div class="metric-label">Unique Bengalureans Reached</div>
+                                </div>
+                                <div class="metric-tile">
+                                    <div class="metric-num">7K–12K</div>
+                                    <div class="metric-label">Landing Page Visits</div>
+                                </div>
+                                <div class="metric-tile" style="border-left: 5px solid var(--accent-red);">
+                                    <div class="metric-num highlight">1.5K–3K</div>
+                                    <div class="metric-label">Survey Completions</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="planning-disclaimer reveal delay-5">
+                            * Planning estimates based on benchmark costs per mille (CPM) and click-through rates (CTR) in Bengaluru. Actual outcomes subject to audience targeting, creative engagement, platform bidding auctions, and survey completion velocity.
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Platforms: <strong>Meta (Instagram/Facebook) · YouTube Shorts · Google Display</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>AHF India Cares × MORPH._Code</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 9: SCOPE & INVESTMENT
+                 ======================================================== -->
+            <section class="slide" data-index="8">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>08 / Commercial Proposal</span>
+                            <span class="slide-index-counter">09</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="section-kicker reveal delay-1">Transparent Commercial Structure</div>
+                        <h2 class="slide-h1 reveal delay-2">Campaign scope & investment</h2>
+                        <p class="slide-lead reveal delay-3">
+                            A clear, accountable breakdown of creative deliverables, professional fees, and direct media investments.
+                        </p>
+
+                        <div class="commercials-layout reveal delay-4">
+                            <!-- Scope Manifest -->
+                            <div class="scope-manifest-card">
+                                <div class="card-header-label">Contracted Scope of Work</div>
+                                <table class="deliverables-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Deliverable Description</th>
+                                            <th class="qty-col">Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Campaign strategy, creative concept & scripts</td>
+                                            <td class="qty-col">1</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Edited VoxPop vertical videos (3 creative formats)</td>
+                                            <td class="qty-col">15</td>
+                                        </tr>
+                                        <tr>
+                                            <td>U=U motion graphics explainer video</td>
+                                            <td class="qty-col">1</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Awareness pamphlets (design, print-ready art)</td>
+                                            <td class="qty-col">10,000</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Digital landing page & anonymous survey build</td>
+                                            <td class="qty-col">1</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Media planning, ad operations & campaign management</td>
+                                            <td class="qty-col">1</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Campaign performance & public perception report</td>
+                                            <td class="qty-col">1</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Investment Column -->
+                            <div class="investment-summary-card">
+                                <div class="cost-hero-box">
+                                    <div class="cost-role-tag">Agency Professional Fee · MORPH._Code</div>
+                                    <div class="cost-amount-large">₹4,50,000</div>
+                                    <div class="tax-note">Exclusive of applicable GST (18%)</div>
+                                </div>
+
+                                <div class="cost-hero-box">
+                                    <div class="cost-role-tag">Direct Paid Media Investment</div>
+                                    <div class="cost-amount-large">₹3,00,000</div>
+                                    <div class="tax-note">Disbursed directly into platform ad accounts</div>
+                                </div>
+
+                                <div class="cost-hero-box total-box">
+                                    <div class="cost-role-tag">Total Campaign Investment</div>
+                                    <div class="cost-amount-large">₹7,50,000</div>
+                                    <div class="tax-note">Exclusive of applicable taxes</div>
+                                </div>
+
+                                <div class="commercial-note-box">
+                                    <strong>Commercial Clarification:</strong> Third-party production crews, print vendor fees, physical distribution logistics, and incidental permits are to be confirmed as inclusive or billed separately prior to final SOW sign-off.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Terms: <strong>50% advance upon contract execution · 50% upon delivery of final report</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>AHF India Cares × MORPH._Code</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+
+            <!-- ========================================================
+                 SLIDE 10: EXECUTION TIMELINE
+                 ======================================================== -->
+            <section class="slide" data-index="9">
+                <div class="slide-inner">
+                    <header class="slide-header reveal delay-1">
+                        <div class="header-brand-group">
+                            <div class="brand-ahf-logo">
+                                <span class="ahf-bold">AHF</span>
+                                <span class="ahf-sub">India Cares</span>
+                            </div>
+                            <div class="brand-sep"></div>
+                            <span class="brand-morph-tag">MORPH._Code</span>
+                        </div>
+                        <div class="header-meta-group">
+                            <span>09 / Execution & Rollout</span>
+                            <span class="slide-index-counter">10</span>
+                        </div>
+                    </header>
+
+                    <div class="slide-body">
+                        <div class="section-kicker reveal delay-1">Phased Implementation</div>
+                        <h2 class="slide-h1 reveal delay-2">Seven-day initial campaign rollout</h2>
+                        <p class="slide-lead reveal delay-3">
+                            A disciplined sprint ensuring rapid production, medical approvals, print logistics, and coordinated World AIDS Day activation.
+                        </p>
+
+                        <div class="timeline-container reveal delay-4">
+                            <div class="gantt-strip">
+                                <!-- Day 1 -->
+                                <div class="day-column">
+                                    <div class="day-header">Day 1</div>
+                                    <div class="day-badge">Strategy</div>
+                                    <div class="day-task-desc">
+                                        Campaign strategy alignment, script finalisation, and formal AHF medical/legal review.
+                                    </div>
+                                </div>
+
+                                <!-- Day 2 -->
+                                <div class="day-column">
+                                    <div class="day-header">Day 2</div>
+                                    <div class="day-badge">Production</div>
+                                    <div class="day-task-desc">
+                                        On-ground VoxPop video production in Bengaluru hubs; digital survey & landing page development.
+                                    </div>
+                                </div>
+
+                                <!-- Day 3 -->
+                                <div class="day-column">
+                                    <div class="day-header">Day 3</div>
+                                    <div class="day-badge">Post-Prod</div>
+                                    <div class="day-task-desc">
+                                        Rush video editing, audio mastering, U=U motion graphics creation, and pamphlet prepress proofing.
+                                    </div>
+                                </div>
+
+                                <!-- Day 4 -->
+                                <div class="day-column">
+                                    <div class="day-header">Day 4</div>
+                                    <div class="day-badge">Prep & Print</div>
+                                    <div class="day-task-desc">
+                                        Final creative approvals, QA testing of survey forms, and 10,000 pamphlet print run.
+                                    </div>
+                                </div>
+
+                                <!-- Day 5 -->
+                                <div class="day-column launch-day">
+                                    <div class="day-header">Day 5</div>
+                                    <div class="day-badge">World AIDS Day</div>
+                                    <div class="day-task-desc">
+                                        <strong>1 December 2026:</strong> Campaign launch, paid ad accounts live, initial VoxPops released.
+                                    </div>
+                                </div>
+
+                                <!-- Day 6 -->
+                                <div class="day-column">
+                                    <div class="day-header">Day 6</div>
+                                    <div class="day-badge">Distribution</div>
+                                    <div class="day-task-desc">
+                                        Ground pamphlet distribution across Bengaluru transit and colleges; retargeting ads deployed.
+                                    </div>
+                                </div>
+
+                                <!-- Day 7 -->
+                                <div class="day-column">
+                                    <div class="day-header">Day 7</div>
+                                    <div class="day-badge">Review</div>
+                                    <div class="day-task-desc">
+                                        Initial rollout wrap, first 48h engagement debrief, and mid-campaign pulse review.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-footer-block reveal delay-5">
+                                <div class="time-note-unit">
+                                    <strong>Beyond Day 7 (Post-Launch Phase):</strong> Survey data collection, paid media optimisation, and continuous ad pacing run through December 2026, culminating in the comprehensive Perception Pulse Report.
+                                </div>
+                                <div class="time-note-unit">
+                                    <strong>Operational Dependencies:</strong> Execution within the 7-day sprint relies on swift client approval turnarounds (&lt;12 hours), early vendor holds, and confirmed print capacity.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="slide-footer reveal delay-4">
+                        <div class="footer-left">
+                            <span>Occasion: <strong>World AIDS Day — 1 December 2026</strong></span>
+                            <span>City: <strong>Bengaluru, Karnataka</strong></span>
+                        </div>
+                        <div class="footer-right">
+                            <span>AHF India Cares × MORPH._Code</span>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ===========================================
+         SLIDE PRESENTATION LOGIC, FULLSCREEN & HUD
+         =========================================== -->
+    <script>
+        class PresentationController {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.stage = document.getElementById('deckStage');
+                this.slideCounter = document.getElementById('slideCounter');
+                this.progressFill = document.getElementById('progressFill');
+                this.prevBtn = document.getElementById('prevBtn');
+                this.nextBtn = document.getElementById('nextBtn');
+                this.fullscreenBtn = document.getElementById('fullscreenBtn');
+                this.editToggle = document.getElementById('editToggle');
+                this.hud = document.getElementById('hudContainer');
+
+                this.setupStageScale();
+                this.setupNavigation();
+                this.setupFullscreen();
+                this.setupAutoHidingHUD();
+                this.setupInlineEditor();
+                this.loadSavedEdits();
+                this.showSlide(0);
+            }
+
+            setupStageScale() {
+                const scale = () => {
+                    const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+                    const x = (window.innerWidth - 1920 * factor) / 2;
+                    const y = (window.innerHeight - 1080 * factor) / 2;
+                    this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+                };
+                scale();
+                window.addEventListener('resize', scale);
+            }
+
+            setupNavigation() {
+                // Keyboard Navigation
+                window.addEventListener('keydown', (e) => {
+                    // Do not navigate if user is actively editing text
+                    if (document.activeElement && document.activeElement.isContentEditable) {
+                        return;
+                    }
+
+                    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                        e.preventDefault();
+                        this.next();
+                    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                        e.preventDefault();
+                        this.prev();
+                    } else if (e.key === 'Home') {
+                        e.preventDefault();
+                        this.showSlide(0);
+                    } else if (e.key === 'End') {
+                        e.preventDefault();
+                        this.showSlide(this.slides.length - 1);
+                    } else if (e.key === 'f' || e.key === 'F') {
+                        e.preventDefault();
+                        this.toggleFullScreen();
+                    } else if (e.key === 'e' || e.key === 'E') {
+                        e.preventDefault();
+                        this.toggleEditMode();
+                    }
+                });
+
+                // Button Controls
+                this.prevBtn.addEventListener('click', () => this.prev());
+                this.nextBtn.addEventListener('click', () => this.next());
+
+                // Touch / Swipe Navigation
+                let touchStartX = 0;
+                let touchStartY = 0;
+                window.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                window.addEventListener('touchend', (e) => {
+                    const diffX = e.changedTouches[0].screenX - touchStartX;
+                    const diffY = e.changedTouches[0].screenY - touchStartY;
+                    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                        if (diffX < 0) this.next();
+                        else this.prev();
+                    }
+                }, { passive: true });
+            }
+
+            setupFullscreen() {
+                this.fullscreenBtn.addEventListener('click', () => this.toggleFullScreen());
+
+                const updateFsIcon = () => {
+                    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+                    const fsIcon = document.getElementById('fsIcon');
+                    if (isFs) {
+                        fsIcon.innerHTML = `<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>`;
+                    } else {
+                        fsIcon.innerHTML = `<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>`;
+                    }
+                };
+
+                document.addEventListener('fullscreenchange', () => {
+                    updateFsIcon();
+                    this.setupStageScale();
+                });
+                document.addEventListener('webkitfullscreenchange', () => {
+                    updateFsIcon();
+                    this.setupStageScale();
+                });
+            }
+
+            toggleFullScreen() {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(err => {
+                            console.warn("Fullscreen request error:", err);
+                        });
+                    } else if (document.documentElement.webkitRequestFullscreen) {
+                        document.documentElement.webkitRequestFullscreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                }
+            }
+
+            setupAutoHidingHUD() {
+                let hudTimer = null;
+                const showHud = () => {
+                    document.body.classList.remove('mouse-idle');
+                    this.hud.classList.add('hud-visible');
+                    clearTimeout(hudTimer);
+                    hudTimer = setTimeout(() => {
+                        if (!this.hud.matches(':hover') && !this.isEditMode) {
+                            this.hud.classList.remove('hud-visible');
+                            document.body.classList.add('mouse-idle');
+                        }
+                    }, 2500);
+                };
+
+                window.addEventListener('mousemove', showHud);
+                window.addEventListener('touchstart', showHud);
+                window.addEventListener('keydown', showHud);
+
+                this.hud.addEventListener('mouseenter', () => {
+                    clearTimeout(hudTimer);
+                    this.hud.classList.add('hud-visible');
+                });
+
+                this.hud.addEventListener('mouseleave', () => {
+                    if (!this.isEditMode) {
+                        hudTimer = setTimeout(() => {
+                            this.hud.classList.remove('hud-visible');
+                            document.body.classList.add('mouse-idle');
+                        }, 2000);
+                    }
+                });
+
+                // Show initially for 3 seconds so the user knows it's there
+                showHud();
+            }
+
+            showSlide(index) {
+                this.currentSlide = Math.max(0, Math.min(index, this.slides.length - 1));
+                
+                this.slides.forEach((slide, i) => {
+                    const isActive = i === this.currentSlide;
+                    slide.classList.toggle('active', isActive);
+                    slide.classList.toggle('visible', isActive);
+                });
+
+                // Update Counter & Progress Bar
+                const currentFormatted = String(this.currentSlide + 1).padStart(2, '0');
+                const totalFormatted = String(this.slides.length).padStart(2, '0');
+                this.slideCounter.textContent = `${currentFormatted} / ${totalFormatted}`;
+                
+                const progressPct = ((this.currentSlide + 1) / this.slides.length) * 100;
+                this.progressFill.style.width = `${progressPct}%`;
+            }
+
+            next() {
+                if (this.currentSlide < this.slides.length - 1) {
+                    this.showSlide(this.currentSlide + 1);
+                }
+            }
+
+            prev() {
+                if (this.currentSlide > 0) {
+                    this.showSlide(this.currentSlide - 1);
+                }
+            }
+
+            setupInlineEditor() {
+                this.isEditMode = false;
+                this.editToggle.addEventListener('click', () => this.toggleEditMode());
+
+                // Save to localStorage on Ctrl+S
+                window.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                        e.preventDefault();
+                        this.saveEdits();
+                    }
+                });
+            }
+
+            toggleEditMode() {
+                this.isEditMode = !this.isEditMode;
+                this.editToggle.classList.toggle('active', this.isEditMode);
+
+                const editableElements = document.querySelectorAll(
+                    '.slide-h1, .slide-lead, .cover-title, .cover-tagline, .pillar-title, .pillar-desc, ' +
+                    '.manifesto-headline, .manifesto-line, .manifesto-col p, .point-item span, ' +
+                    '.format-name, .format-concept, .pane-title, .pane-body, .day-task-desc, .gap-text'
+                );
+
+                editableElements.forEach(el => {
+                    el.contentEditable = this.isEditMode ? 'true' : 'false';
+                    if (this.isEditMode) {
+                        el.addEventListener('blur', () => this.saveEdits());
+                    }
+                });
+
+                if (this.isEditMode) {
+                    this.hud.classList.add('hud-visible');
+                } else {
+                    this.saveEdits();
+                }
+            }
+
+            saveEdits() {
+                const slidesData = {};
+                this.slides.forEach((slide, i) => {
+                    slidesData[i] = slide.innerHTML;
+                });
+                try {
+                    localStorage.setItem('ahf_presentation_edits', JSON.stringify(slidesData));
+                    console.log('Slide edits saved to localStorage.');
+                } catch (e) {
+                    console.warn('Could not save to localStorage', e);
+                }
+            }
+
+            loadSavedEdits() {
+                try {
+                    const saved = localStorage.getItem('ahf_presentation_edits');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        this.slides.forEach((slide, i) => {
+                            if (parsed[i]) {
+                                slide.innerHTML = parsed[i];
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Could not load saved edits', e);
+                }
+            }
+        }
+
+        // Initialize Presentation
+        document.addEventListener('DOMContentLoaded', () => {
+            window.presentation = new PresentationController();
+        });
+    </script>
+</body>
+</html>
